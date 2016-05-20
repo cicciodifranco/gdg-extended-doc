@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html>
+    <head>
+        <title>La mia prima mappa</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+        <style>
+            html, body {
+                height: 100%;
+                margin: 0;
+                padding: 0;
+            }
+            #myMap {
+                height: 80%;
+            }
+
+        </style>
+    </head>
+    <body>
+        <div id="myMap"></div>
+        <div id="coordinates"></div>
+    </body>
+
+    <script type="text/javascript">
+
+        var map;
+        function initMyMap() {
+            map = new google.maps.Map(document.getElementById('myMap'), {
+                center: {lat: 38.397, lng: 14.644},
+                zoom: 8,
+                mapTypeId: google.maps.MapTypeId.HYBRID
+            });
+
+            map.addListener('center_changed', function () {
+
+                document.getElementById('coordinates').innerHTML = map.getCenter().toString();
+            });
+            var markers = [];
+            map.addListener('click', function (mouseEvent) {
+
+                markers[markers.length]= new google.maps.Marker({
+                    position: mouseEvent.latLng,
+                    map: map,
+                    title: 'Il mio primo marker',
+                    draggable: true,
+                    animation: google.maps.Animation.DROP
+                });
+                
+            if(markers.length === 3){
+                var path = [], i = 0;
+                for(i in markers){
+                    path[i]= new google.maps.LatLng({
+                        lat : markers[i].getPosition().lat(), 
+                        lng : markers[i].getPosition().lng()
+                    });
+                    i++;
+                }
+                path[3]= path[0];
+                
+                var bermudaTriangle = new google.maps.Polygon({
+                    paths: path,
+                    strokeColor: '#FF0000',
+                    strokeOpacity: 0.8,
+                    strokeWeight: 2,
+                    fillColor: '#FF0000',
+                    fillOpacity: 0.35,
+                    geodesic: true
+                  });
+                  bermudaTriangle.setMap(map);
+                  
+                  var area = google.maps.geometry.spherical.computeArea(path);
+                  document.getElementById('coordinates').innerHTML+='</br> Area: '+area;
+                  markers = [];
+                
+            }
+                markers[markers.length-1].addListener('dragend', function (evt) {
+
+                    document.getElementById('coordinates').innerHTML = marker.getPosition().toString();
+                });
+
+            });
+            var infoWindow = new google.maps.InfoWindow({map: map});
+
+            // Try HTML5 geolocation.
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function (position) {
+                    var pos = {
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude
+                    };
+
+                    infoWindow.setPosition(pos);
+                    infoWindow.setContent('Location found.');
+                    map.setCenter(pos);
+                }, function () {
+                    handleLocationError(true, infoWindow, map.getCenter());
+                });
+                
+            } else {
+                // Browser doesn't support Geolocation
+                handleLocationError(false, infoWindow, map.getCenter());
+            }
+        }
+
+        function handleLocationError(browserHasGeolocation, infoWindow, pos) {
+            infoWindow.setPosition(pos);
+            infoWindow.setContent(browserHasGeolocation ?
+                    'Error: The Geolocation service failed.' :
+                    'Error: Your browser doesn\'t support geolocation.');
+        }
+
+
+    </script>
+
+
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyApa3otEZgGi10BcLma21-lf-84hjTLL_0&callback=initMyMap&libraries=drawing,geometry"
+    async defer></script>
+</html>
